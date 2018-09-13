@@ -64,9 +64,9 @@ Runtime Environment:
 Install:
 https://code.visualstudio.com/download
 
-Extensions to install (docs[https://code.visualstudio.com/docs/editor/extension-gallery])
+Extensions to install [docs](https://code.visualstudio.com/docs/editor/extension-gallery)
 
-C# : (Extensions[https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp])
+C# : [Extensions](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp)
 
-Ionide-fsharp : (Extensions[https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp])
+Ionide-fsharp : [Extensions](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp)
 
