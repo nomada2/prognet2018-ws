@@ -35,7 +35,7 @@ Version:            2.0.0
 
 ## Mono on unix/mac
 
-For unix/mac, Windows doesnt need it
+For unix/mac, Windows doesn't need it
 http://www.mono-project.com/download/
 
 Recommended 5.2 , required >= 4.8
@@ -64,9 +64,9 @@ Runtime Environment:
 Install:
 https://code.visualstudio.com/download
 
-Extensions to install (docs[https://code.visualstudio.com/docs/editor/extension-gallery]):
+Extensions to install (docs[https://code.visualstudio.com/docs/editor/extension-gallery])
 
-C# : https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp 
+C# : (Extensions[https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp])
 
-Ionide-fsharp : https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp 
+Ionide-fsharp : (Extensions[https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp])
 
