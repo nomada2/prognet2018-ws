@@ -1,5 +1,4 @@
-# ProgNET 2018 Workshop
-# Modern patterns of concurrent and parallel programming in .NET 
+# ProgNET 2018 Workshop - Modern patterns of concurrent and parallel programming in .NET 
 
 ## Requirements
 
