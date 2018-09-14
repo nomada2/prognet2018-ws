@@ -50,6 +50,7 @@ module Pipeline =
         let func = defaultArg func (Func<_,_>(fun x -> Unchecked.defaultof<_>))
         let funcTask = defaultArg funcTask (Func<_,_>(fun x -> Unchecked.defaultof<_>))
 
+        // TODO (3.a)
         let then' (nextFunction:Func<'b,'c>) =
             Pipeline( (Some(composeFunc func nextFunction)), None) :> IPipeline<_,_>
 
@@ -60,8 +61,7 @@ module Pipeline =
 
         // TODO (3.b)
         let enqueue (input:'a) (callback:Func<('a * 'b), unit>) =
-            // missing code
-            ()
+            BlockingCollection<Continuation<_,_>>.AddToAny(continuations, Continuation(input, callback))
 
         let stop() = for continuation in continuations do continuation.CompleteAdding()
 
@@ -72,6 +72,7 @@ module Pipeline =
             for i = 0 to blockingCollectionPoolSize - 1 do
                 Task.Factory.StartNew(fun ( )->
                     while (not <| continuations.All(fun bc -> bc.IsCompleted)) && (not <| cancellationToken.IsCancellationRequested) do
+                        let continuation = ref Unchecked.defaultof<Continuation<_,_>>
                         
                         // TODO (3.c)
                         // step to implement 
@@ -79,10 +80,11 @@ module Pipeline =
                          // 2 - process the "continuation" function
                          //     Keep in mind that the continutaion function has both the
                          //     value and the callback 
-                      
-                        // let continuation = ref Unchecked.defaultof<Continuation<_,_>>
-                      ()
-                , cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default) |> ignore
+                        BlockingCollection.TakeFromAny(continuations, continuation) |> ignore
+                        let continuation = continuation.Value
+                        continuation.Callback.Invoke(continuation.Input, func.Invoke(continuation.Input))
+
+                ,cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default) |> ignore
 
         static member Create(func:Func<'a, 'b>) = Pipeline(Some(func), None) :> IPipeline<_,_>
         static member Create(func:Func<'a, Task<'b>>) = Pipeline(None, Some(func)) :> IPipeline<_,_>

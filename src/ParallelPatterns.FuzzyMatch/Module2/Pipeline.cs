@@ -60,6 +60,7 @@ namespace ParallelPatterns
         
         private BlockingCollection<TOutput>[] Output { get; }
 
+        // TODO (3.a)
         public Pipeline<TOutput, TMid> Then<TMid>(
             Func<TOutput, Task<TMid>> project,
             CancellationToken token = new CancellationToken())
@@ -70,11 +71,12 @@ namespace ParallelPatterns
             CancellationToken token = new CancellationToken())
             => new Pipeline<TOutput, TMid>(project, Output, token);
         
-        // TODO (3.a)
+        // TODO (3.b)
         public void Enqueue(TInput item)
         {
-            // Missing code
-            // add item to internal buffer
+            var sw = new SpinWait();
+            while (!(BlockingCollection<TInput>.TryAddToAny(_input, item) >= 0))
+                sw.SpinOnce();
         }
 
         private async Task Run()
@@ -82,17 +84,25 @@ namespace ParallelPatterns
             var sw = new SpinWait();
             while (!_input.All(bc => bc.IsCompleted) && !_token.IsCancellationRequested)
             {
-                // TODO (3.b)
-                // Missing code
+                // TODO (3.c)
                 // step to implement 
                 // 1 - take an item from the _input collection 
-
                 // 2 - process the item with the internal function
                 //          either _processor or _processoTask according to the active one
-                // 3 - push the result to the Output collec
-                // Bouns :  avoid contention in case of empty queue. 
-                //          Check "SpinWait" (see aboue instance "sw")
-            }  
+                // 3 - push the result to the Output collection
+                var i = BlockingCollection<TInput>.TryTakeFromAny(_input, out var receivedItem, 50, _token);
+                if (i >= 0)
+                {
+                    TOutput outputItem =
+                        _processor != null ? _processor(receivedItem) : await _processoTask(receivedItem);
+                    BlockingCollection<TOutput>.TryAddToAny(Output, outputItem);
+                    sw.SpinOnce();
+                }
+                else
+                {
+                    Thread.SpinWait(1000);
+                }
+            }
 
             if (Output != null)
             {

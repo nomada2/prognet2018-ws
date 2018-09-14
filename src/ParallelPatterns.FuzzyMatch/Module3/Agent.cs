@@ -45,35 +45,51 @@ namespace ParallelPatterns
 
     public class Agent<TMessage, TState> : IAgent<TMessage, TState>
     {
+        private TState _state;
+        private readonly TransformBlock<TMessage, TState> _actionBlock;
+        
         public Agent(
             TState initialState,
             Func<TState, TMessage, TState> action,
             CancellationTokenSource cts = null)
         {
             // TODO (7.a)
-            // Implement Agent body (and behavior)
-            //      - Initialize local isolated state
-            // Suggestion :
-            //  Create Dataflow-block that receives and processes the messages, 
-            //  and then update the local state
+            // Implement Agent
+            // Initialize local isolated state
+            // Create Dataflow-block that receives and processes the messages, and then update the local state
+            _state = initialState;
+            var options = new ExecutionDataflowBlockOptions
+            {
+                CancellationToken = cts?.Token ?? CancellationToken.None
+            };
+            _actionBlock = new TransformBlock<TMessage, TState>(
+                msg => _state = action(_state, msg)
+                , options);
         }
+
         public Agent(
             TState initialState,
             Func<TState, TMessage, Task<TState>> action,
             CancellationTokenSource cts = null)
         {
             // TODO (7.a) 
-            // same as abouve but different Agent 
-            // behavior signature
+
+            _state = initialState;
+            var options = new ExecutionDataflowBlockOptions
+            {
+                CancellationToken = cts?.Token ?? CancellationToken.None
+            };
+            _actionBlock = new TransformBlock<TMessage, TState>(
+                async msg => _state = await action(_state, msg)
+                , options);
         }
 
-        public Task Send(TMessage message)
-            => /* TODO  missing code */ Task.CompletedTask;
-        public void Post(TMessage message)
-        { /* TODO  missing code */ }
-
-        public IObservable<TState> AsObservable()
-            => null; /* TODO  missing code */
+        public Task Send(TMessage message) 
+            => _actionBlock.SendAsync(message);
+        public void Post(TMessage message) 
+            => _actionBlock.Post(message);
+        public IObservable<TState> AsObservable() 
+            => _actionBlock.AsObservable();
     }
 
 

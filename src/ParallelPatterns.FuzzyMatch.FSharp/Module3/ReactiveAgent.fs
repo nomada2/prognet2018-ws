@@ -70,18 +70,23 @@ module ReactiveAgent =
         // TODO 7.a
         // Implement both the reactive interfaces IObserver and IObservable, also pay attention to the generic
         // type constarctor for these intefaces, they might not be the same.
-        // Then, expose the IObservable interface throughout an instance method called "AsObservable". 
-        // This methid will be used
+        // Then, expose the IObservable interface throughout an instance method called "AsObservable". This methid will be used
         // to register the output after each message is processed.
+        interface IObserver<'T> with
+            member x.OnNext value   = x.Next(value)
+            member x.OnError ex     = x.Error(ex)
+            member x.OnCompleted()  = x.Completed()
+
+        interface IObservable<'U> with
+            member x.Subscribe(observer:IObserver<'U>) =
+                observer |> Message.Add |> mbox.Post
+                { new IDisposable with
+                    member x.Dispose() =
+                        observer |> Message.Remove |> mbox.Post }
 
         interface IAgent<'T, 'U> with
             member x.Post(msg) = Message.Next(msg)  |> mbox.Post
             member x.Send(msg) = async { Message.Next(msg)  |> mbox.Post } |> Async.startAsPlainTask
             member x.AsObservable() = x.AsObservable()
-        
-        // TODO 7.b
-        member x.AsObservable() = 
-                // replace the "Unchecked.defaultof<IObservable<'U>> "
-                // with the missing implementation
-            Unchecked.defaultof<IObservable<'U>> 
-                       
+
+        member x.AsObservable() = (x :> IObservable<'U>)

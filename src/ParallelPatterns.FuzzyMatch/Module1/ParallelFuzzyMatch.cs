@@ -225,28 +225,31 @@ namespace ParallelPatterns
             // 
             // Then complete uncomment the following code, add the missing code and run it
 
-            // Uncoment this code 
-            //var matchSet = await (
-            //    from contentFile in files.Traverse(f => File.ReadAllTextAsync(f))
-            //    from words in contentFile  /* TODO (2) : code missing HERE */
-            //                               // Traverse to split the words (do not include bad words)
-            //    let wordSet = words.Flatten().AsSet()
-            //    // TODO (2)
-            //    from bestMatch in wordsLookup.Traverse(wl => JaroWinklerModule.bestMatchTask(wordSet, wl, threshold))
-            //    select bestMatch.Flatten());
-
-
+            // Uncomment this code 
+            var matchSet = await (
+                from contentFile in files.Traverse(f => File.ReadAllTextAsync(f))
+                
+                 
+                from words in contentFile  /* TODO (2) : code missing HERE */
+                                  .Traverse(text =>
+                    WordRegex.Value.Split(text).Where(w => !IgnoreWords.Contains(w)))
+                let wordSet = words.Flatten().AsSet()
+                // TODO (2)
+                from bestMatch in wordsLookup.Traverse(wl => JaroWinklerModule.bestMatchTask(wordSet, wl, threshold))
+                select bestMatch.Flatten());
+            
+            
             // NOTES
             // Here the code that leverages the "ReadFileLinesAndFlatten" method
-
+            
             //var matchSet = await (
             //    from contentFile in files.Traverse(f => ReadFileLinesAndFlatten(f))
             //    let wordSet = contentFile.Flatten().AsSet()
             //    from bestMatch in wordsLookup.Traverse(wl => JaroWinklerModule.bestMatchTask(wordSet, wl, threshold))
             //    select bestMatch.Flatten());
 
-            // TODO Uncoment this code
-            //return PrintSummary(matchSet.AsSet());
+            // TODO Uncomment this code
+            return PrintSummary(matchSet.AsSet());
 
             // TODO Remove this code
             throw new Exception();

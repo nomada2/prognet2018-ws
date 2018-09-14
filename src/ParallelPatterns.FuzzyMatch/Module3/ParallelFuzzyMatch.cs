@@ -59,26 +59,28 @@ namespace ParallelPatterns
             // Implement a block name "printBlock", which prints the output of 
             // the foundMatchesBlock using the "PrintSummary" method 
             // Then link the block to the "foundMatchesBlock" block
-            // var printBlock = // missing code
+            var printBlock =
+                new ActionBlock<WordDistanceStruct[]>(
+                    r => PrintSummary(r.AsSet()),
+                    new ExecutionDataflowBlockOptions { SingleProducerConstrained = true });
+
+            // TODO (6)
+            // After have completed TODO (5), remove or unlink the printBlock, and replace the output of the "foundMatchesBlock" block 
+            // with Reactive Extensions "AsObservable", maintaining the call to the "PrintSummary" method 
             
+            foundMatchesBlock.AsObservable().Subscribe(summaryMathces => PrintSummary(summaryMathces.AsSet()));
+
             var linkOptions = new DataflowLinkOptions { PropagateCompletion = true };
 
             IDisposable disposeAll = new CompositeDisposable(
                 inputBlock.LinkTo(readLinesBlock, linkOptions),
                 readLinesBlock.LinkTo(splitWordsBlock, linkOptions),
                 splitWordsBlock.LinkTo(batch, linkOptions),
-                batch.LinkTo(foundMatchesBlock, linkOptions)
-                // TODO uncoment this code after
-                // implemented TODO (5)
-                // foundMatchesBlock.LinkTo(printBlock)
+                batch.LinkTo(foundMatchesBlock, linkOptions),
+                foundMatchesBlock.LinkTo(printBlock)
             );
 
             cts.Token.Register(disposeAll.Dispose);
-
-            // TODO (6)
-            // After have completed TODO (5), remove or unlink the printBlock, and replace the output of the "foundMatchesBlock" block 
-            // with Reactive Extensions "AsObservable", maintaining the call to the "PrintSummary" method 
-
 
             foreach (var file in files)
                 await inputBlock.SendAsync(file, cts.Token);

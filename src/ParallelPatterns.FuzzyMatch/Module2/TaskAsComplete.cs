@@ -19,6 +19,7 @@ namespace ParallelPatterns.TaskComposition
                 completionSourceList.Add(new TaskCompletionSource<R>());
 
             // TODO 4
+            // add missing code here 
             //
             // with a large set of Tasks running in parallel, 
             // the Task.WaitAny generates a bad performance problem
@@ -30,12 +31,29 @@ namespace ParallelPatterns.TaskComposition
             // To minimize the resource consumption, try to avoid the usage pf Task.WhenAny
             // Suggestion, the TaskCompletionSource (or a collection) is a good alternative
 
-            // TODO (3.a)
-            Action<Task<R>> continutaion = null;  // replace "null" with missing code here 
+            int prevIndex = -1;
+            Action<Task<R>> continuation = completedTask =>
+            {
+                int index = Interlocked.Increment(ref prevIndex);
+                var source = completionSourceList[index];
+
+                switch (completedTask.Status)
+                {
+                    case TaskStatus.Canceled:
+                        source.TrySetCanceled();
+                        break;
+                    case TaskStatus.Faulted:
+                        source.TrySetException(completedTask.Exception.InnerExceptions);
+                        break;
+                    default:
+                        source.TrySetResult(completedTask.Result);
+                        break;
+                }
+            };
             
             foreach (var inputTask in inputTaskList)
             {
-                inputTask.ContinueWith(continutaion,
+                inputTask.ContinueWith(continuation,
                     CancellationToken.None,
                     TaskContinuationOptions.ExecuteSynchronously,
                     TaskScheduler.Default);
